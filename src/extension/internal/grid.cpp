@@ -119,14 +119,20 @@ Grid::effect (Inkscape::Extension::Effect *module, Inkscape::UI::View::View *doc
     Geom::Point spacings;
     if (module->get_param_bool("divideSelectionBySpacing")) {
         spacings = Geom::Point( bounding_area.width() / module->get_param_float("xspacing"),
-                                bounding_area.height() / module->get_param_float("yspacing"));
+                                bounding_area.height() / module->get_param_float("yspacing") );
     } else {
         spacings = Geom::Point ( scale * module->get_param_float("xspacing"),
-                                 scale * module->get_param_float("yspacing"));
+                                 scale * module->get_param_float("yspacing") );
     }
     gdouble line_width = scale * module->get_param_float("lineWidth");
-    Geom::Point offsets( scale * module->get_param_float("xoffset"),
-                         scale * module->get_param_float("yoffset"));
+    Geom::Point offsets;
+    if (module->get_param_bool("useSpacingOffset")) {
+      offsets = Geom::Point( spacings.x() * module->get_param_float("xoffset"),
+                             spacings.y() * module->get_param_float("yoffset") );
+    } else {
+        offsets = Geom::Point( scale * module->get_param_float("xoffset"),
+                               scale * module->get_param_float("yoffset") );
+    }
 
     Glib::ustring path_data("");
 
@@ -216,12 +222,13 @@ Grid::init (void)
         "<inkscape-extension xmlns=\"" INKSCAPE_EXTENSION_URI "\">\n"
             "<name>" N_("Grid") "</name>\n"
             "<id>org.inkscape.effect.grid</id>\n"
-            "<param name=\"divideSelectionBySpacing\" gui-text=\"" N_("Divide Selection by Spacing FA") "\" type=\"boolean\">false</param>\n"
+            "<param name=\"divideSelectionBySpacing\" gui-text=\"" N_("Divide Selection by Spacing Factor (FA)") "\" type=\"boolean\">false</param>\n"
+            "<param name=\"useSpacingOffset\" gui-text=\"" N_("Offset by Multiple of Spacing (SP)") "\" type=\"boolean\">false</param>\n"
             "<param name=\"lineWidth\" gui-text=\"" N_("Line Width (px):") "\" type=\"float\">1.0</param>\n"
             "<param name=\"xspacing\" gui-text=\"" N_("Horizontal Spacing (px|FA):") "\" type=\"float\" min=\"0.1\" max=\"1000.0\">10.0</param>\n"
             "<param name=\"yspacing\" gui-text=\"" N_("Vertical Spacing (px|FA):") "\" type=\"float\" min=\"0.1\" max=\"1000.0\">10.0</param>\n"
-            "<param name=\"xoffset\" gui-text=\"" N_("Horizontal Offset (px):") "\" type=\"float\" min=\"-1000.0\" max=\"1000.0\">0.0</param>\n"
-            "<param name=\"yoffset\" gui-text=\"" N_("Vertical Offset (px):") "\" type=\"float\" min=\"-1000.0\" max=\"1000.0\">0.0</param>\n"
+            "<param name=\"xoffset\" gui-text=\"" N_("Horizontal Offset (px|SP):") "\" type=\"float\" min=\"0.0\" max=\"1000.0\">0.0</param>\n"
+            "<param name=\"yoffset\" gui-text=\"" N_("Vertical Offset (px|SP):") "\" type=\"float\" min=\"0.0\" max=\"1000.0\">0.0</param>\n"
             "<effect>\n"
                 "<object-type>all</object-type>\n"
                 "<effects-menu>\n"
